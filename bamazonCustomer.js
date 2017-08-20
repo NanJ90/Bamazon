@@ -1,7 +1,6 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
-var table = require('console.table');
-var quantity;
+var table = require("console.table");
 var userRequired;
 var availability;
 
@@ -19,14 +18,16 @@ connection.connect(function(err){
 });
 // asking questions for user 
 function startApp(){
-	console.log("Those are on SALE!");
+	console.log("Those are on SALE!\n");
+	console.log("\n*******************\n");
 	connection.query("SELECT * FROM products", function(err,response){
 		console.table(response);
+		console.log("\n********************\n");
 		if(err) throw err;
 	inquirer.prompt([
 	    {
 	    	name:"itemId",
-	    	message:"Which one you want to buy.Please input the ID(NUMBER ONLY)?",
+	    	message:"Which one you want to buy.Please input the ID(NUMBER ONLY)?\n",
 	    	validate:function(value){
 				if(!isNaN(parseInt(value))){
 					return true;
@@ -35,7 +36,7 @@ function startApp(){
 				}
 			}
 	   ]).then(function(data){	  
-	   		console.log("this is item-id data:",data.itemId); 		
+	   		// console.log("this is item-id data:",data.itemId); 		
 	   		promptUserForItemQuantity(data);
 	   		
 	   });
@@ -75,6 +76,7 @@ function quantity_Total(response,data){
 			console.log("Your total is: $",total);
 			availability -= userRequired;
 			update(data,results,availability);
+			startApp();
 			// console.log("afterpurchase: ", availability);
 			// promptUserTotal(response,results[0].price);
 		}else{				
@@ -101,11 +103,11 @@ function update(data,results,availability){
 		function(err,response){
 			if(err) throw err;
 			// console.log("availability: ", availability);
-			console.log(response.affectedRows + "updated data");
-			console.log(data.itemId);
+			// console.log(response.affectedRows + "updated data");
+			// console.log(data.itemId);
 	});
-	console.log(query.sql);
 };
+
 
 
 
