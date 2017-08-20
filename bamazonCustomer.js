@@ -1,34 +1,28 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
+var table = require('console.table');
+var quantity;
+var userRequired;
+var availability;
 
 var connection = mysql.createConnection({
   host: "localhost",
   port: 3306,
-
-  // Your username
   user: "root",
-
-  // Your password
   password: "",
   database: "bamazon"
 });
-
+// connection built 
 connection.connect(function(err){
 	if(err) throw err;
-	console.log("Those are on SALE!");
-	afterConnect();
+	startApp();
 });
-
-function afterConnect(){
+// asking questions for user 
+function startApp(){
+	console.log("Those are on SALE!");
 	connection.query("SELECT * FROM products", function(err,response){
+		console.table(response);
 		if(err) throw err;
-		console.log("afterConnect- this is response.", response);
-		promptUserForItemId(response);
-	})
-}
-
-function promptUserForItemId(response){
-	console.log("promptUserForItemId - this is response.", response);
 	inquirer.prompt([
 	    {
 	    	name:"itemId",
@@ -41,10 +35,11 @@ function promptUserForItemId(response){
 				}
 			}
 	   ]).then(function(data){	  
-	   		console.log("this is item-id data:",data); 		
+	   		console.log("this is item-id data:",data.itemId); 		
 	   		promptUserForItemQuantity(data);
 	   		
 	   });
+	})
 }
 
 function promptUserForItemQuantity(data){	
@@ -61,41 +56,56 @@ function promptUserForItemQuantity(data){
 					}
 			}
 		]).then(function(response){
-			console.log("this is user input response: ", response);
-	   		getQuantity(response,data);
+			// console.log("this is user input response: ", response);
+	   		quantity_Total(response,data);
 	});
 }
 
-function getQuantity(response,data){
+function quantity_Total(response,data){
 	// console.log("this is item-id data:",data);
 	connection.query("SELECT * FROM products WHERE item_id =?",[data.itemId
 	],function(err,results){
 		if(err) throw err;
 		// console.log("this is product's stock: ", results[0].stock_quantity);
-		checkQuantity(response,results);
+			availability = results[0].stock_quantity;
+			userRequired = parseInt(response.quantity);
+		if (availability >= userRequired){
+			// cusomer total purchased 
+			var total = userRequired * results[0].price;
+			console.log("Your total is: $",total);
+			availability -= userRequired;
+			update(data,results,availability);
+			// console.log("afterpurchase: ", availability);
+			// promptUserTotal(response,results[0].price);
+		}else{				
+			console.log("Insufficient quantity");
+			startApp();
+		};
 		// console.log("this is user input response: ", response);		
 	});
 }
 
-function checkQuantity(response,results,data){
-	// console.log("checkQuantity userinput quantity: ", response.quantity);
-	var availability = results[0].stock_quantity;
-		if (availability >= parseInt(response.quantity)){
-			promptUserTotal(response,results[0].price);
-		}else{				
-			console.log("Insufficient quantity");
-			afterConnect();
-		};
-}
-
-function promptUserTotal(data,response,results){
-	console.log("this is number of: ", response.quantity, "he/she wants to purchase");	
-	connection.query("SELECT * FROM products WHERE item_id =?",[data.itemId
-	],function(err,results){	
-	 	console.log("Your total is: $" , results[0].price * parseInt(response.quantity));
- 	});
-
- }
+function update(data,results,availability){
+	console.log("this is item-id data:",data.itemId); 
+	// console.log("afterpurchase: ", availability);
+	var query = connection.query(
+		"UPDATE products SET ? WHERE ?", 
+		[
+			{
+				stock_quantity: availability 
+			},
+			{
+				item_id: data.itemId
+			}
+		],
+		function(err,response){
+			if(err) throw err;
+			// console.log("availability: ", availability);
+			console.log(response.affectedRows + "updated data");
+			console.log(data.itemId);
+	});
+	console.log(query.sql);
+};
 
 
 
