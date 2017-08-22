@@ -29,8 +29,7 @@ function startApp(){
 			choices:["View Products for Sale","View Low Inventory","Add to Inventory","Add New Product"]
 		}
 		
-	]).then(function(data){
-		// action = data.name; 
+	]).then(function(data){ 
 		// console.log("this is inquirer data ", data.action);
 		switch(data.action){
 		case "View Products for Sale":
@@ -71,16 +70,17 @@ function addStock(response){
 	inquirer.prompt([
 		{
 			name:"quantity",
-			message:"Adding Inventory (Number Only): ",
-			validate: function(input){
-				if(typeof input !== 'number'){
-						return true;
-					}
-				return false;			
-				}
+			message:"Adding Inventory (Number Only): "
+			// validate: function(input){
+			// 	if(typeof input !== 'number'){
+			// 			return true;
+			// 		}
+			// 	return false;			
+			// 	}
 		}
 	]).then(function(err,data){
-		console.log(data);
+		// undefined Why???
+		console.log("this is input quantity AddStockData", data);
 		// connection.query("UPDATE products SET ? WHERE ?",
 		// 	[
 		// 		// stock_quantity:
